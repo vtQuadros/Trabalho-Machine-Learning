@@ -1,3 +1,14 @@
+## SUPER IMPORTANTE PRO MEU TIME
+
+** Instrução de como utilizar o projeto**
+```bash
+https://vitordocs.gitbook.io/machine-learning/
+```
+
+
+
+
+
 ##  ➡️ Como Executar o Projeto
 
 1.  **Clone o repositório:**
