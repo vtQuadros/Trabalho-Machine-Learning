@@ -1,0 +1,15 @@
+nome_variavel,descricao,tipo,niveis
+op_padronizado,Nome do operador/empresa padronizado pelo sistema,texto,
+dt_ocorrencia,Data (UTC) da Ocorrência Aeronáutica,data,
+hr_ocorrencia,Hora (UTC) da Ocorrência Aeronáutica,hora,
+uf,UF do local da ocorrência,quando aplicável,texto
+regiao,Região do país relacionada ao campo UF,texto,Norte;Nordeste;Centro-Oeste;Sudeste;Sul
+latitude,Latitude do local da ocorrência,decimal,
+longitude,Longitude do local da ocorrência,decimal,
+cat_aeronave,Categoria da aeronave associada à ocorrência,texto,
+fase_operacao,Fase da operação da aeronave no momento da ocorrência,texto,
+modelo_aeronave,Descrição do modelo da aeronave,texto,
+peso_max_decolagem,Peso máximo de decolagem da aeronave,decimal,
+numero_assentos,Quantidade de assentos disponíveis na aeronave,inteiro,
+nome_fabricante,Nome da empresa fabricante da aeronave,texto,
+les_fatais_trip,Número de tripulantes com lesões fatais,inteiro,0 = Não; 1 =  Sim
