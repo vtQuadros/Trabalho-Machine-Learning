@@ -45,7 +45,64 @@ Variável-alvo: `les_fatais_trip` (0 = Não fatal, 1 = Fatal).
 - Ambiente: Jupyter Notebook / VS Code  
 
 ## Como Executar
-1. Clonar o repositório  
-2. Criar e ativar ambiente virtual  
-3. Instalar dependências  
+
+### 1. Executar o Notebook
+```bash
+# Clonar o repositório
+git clone <url-do-repositorio>
+
+# Criar e ativar ambiente virtual
+python -m venv venv
+venv\Scripts\activate  # Windows
+
+# Instalar dependências
+pip install -r requirements.txt
+
+# Abrir o notebook
+jupyter notebook projeto.ipynb
+```
+
+### 2. Usar a API
+
+Após executar o notebook até a seção de exportação:
+
+```bash
+# Instalar dependências da API
+cd api_predicao_evasao
+pip install -r requirements.txt
+
+# Executar a API
+uvicorn api_fastapi:app --reload
+
+# Em outro terminal, testar a API
+python testar_api.py
+```
+
+Acesse a documentação interativa em: `http://127.0.0.1:8000/docs`
+
+Veja mais detalhes no [README da API](api_predicao_evasao/README.md)
+
+## Estrutura do Projeto
+```
+Trabalho-Machine-Learning/
+│
+├── projeto.ipynb                    # Notebook principal com toda análise
+├── README.md                        # Esta documentação
+├── requirements.txt                 # Dependências do projeto
+│
+├── docs/                           # Dados
+│   ├── dicionario.csv
+│   ├── treino.csv
+│   └── teste.csv
+│
+└── api_predicao_evasao/            # API FastAPI
+    ├── api_fastapi.py              # Código da API
+    ├── README.md                   # Documentação da API
+    ├── requirements.txt            # Dependências da API
+    ├── testar_api.py              # Script de teste
+    ├── modelo_lr.pkl              # Modelo exportado (gerado)
+    ├── scaler.pkl                 # Scaler exportado (gerado)
+    ├── colunas_treino.pkl         # Colunas (gerado)
+    └── threshold_otimizado.txt    # Threshold (gerado)
+```
 4. Executar Jupyter Notebook ou abrir no VS Code  
