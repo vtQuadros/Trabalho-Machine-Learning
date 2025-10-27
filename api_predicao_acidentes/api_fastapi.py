@@ -1,183 +1,305 @@
-"""
-API de Previsão de Acidentes Aéreos Fatais — Projeto de Machine Learning & IA
-
-Esta API foi desenvolvida com FastAPI para disponibilizar em produção o modelo de machine learning 
-treinado para prever se um acidente aéreo será fatal ou não.
-
-Funcionamento:
-- Recebe os dados de um acidente aéreo via requisição POST no endpoint `/prever/`.
-- Os dados são automaticamente validados (variáveis numéricas e categóricas relacionadas ao acidente).
-- As variáveis categóricas são codificadas automaticamente (one-hot encoding).
-- O scaler treinado é aplicado para padronizar os dados de entrada.
-- O modelo de Regressão Logística realiza a predição, retornando:
-    - `fatal`: booleano indicando se o acidente tem alta probabilidade de ser fatal.
-    - `probabilidade`: valor entre 0 e 1 com a confiança do modelo.
-
-Limiar de decisão:
-- A predição de fatalidade é feita usando o threshold otimizado durante o treinamento.
-
-Objetivo:
-Fornecer uma interface acessível para integrar o modelo a sistemas externos (ex: dashboards de segurança aérea, 
-sistemas de análise de risco), possibilitando ações preventivas baseadas em dados históricos.
-
-"""
-
-
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 import joblib
 import pandas as pd
 import numpy as np
-from typing import Optional
+from typing import List, Optional
+import logging
+from datetime import datetime
 
-app = FastAPI(
-    title="API de Previsão de Acidentes Aéreos Fatais",
-    description="API para prever se um acidente aéreo será fatal com base em características do voo e da aeronave",
-    version="1.0.0"
+# ==================== CONFIGURAÇÃO DE LOGGING ====================
+logging.basicConfig(
+    filename='api_predicoes.log',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
-# Carregar modelo e scaler
+# ==================== CONFIGURAÇÃO DA API ====================
+app = FastAPI(
+    title="API Predição de Acidentes Aéreos Fatais",
+    description="API para prever fatalidade em acidentes aéreos usando Regressão Logística",
+    version="2.0"
+)
+
+# ==================== CARREGAR MODELO ====================
+MODELO_PATH = "modelo_lr.pkl"
+SCALER_PATH = "scaler.pkl"
+COLUNAS_PATH = "colunas_treino.pkl"
+
+# 🎯 THRESHOLD OTIMIZADO - Leia do arquivo gerado no notebook
 try:
-    model = joblib.load("modelo_lr.pkl")
-    scaler = joblib.load("scaler.pkl")
-    # Carregar as colunas do treinamento para garantir consistência
-    colunas_treino = joblib.load("colunas_treino.pkl")
-except FileNotFoundError as e:
-    print(f"⚠ ERRO: Arquivo não encontrado - {e}")
-    print("Execute o notebook primeiro para gerar os arquivos .pkl necessários!")
-    model = None
-    scaler = None
-    colunas_treino = None
+    with open("threshold_otimizado.txt", "r") as f:
+        linhas = f.readlines()
+        THRESHOLD_OTIMIZADO = float(linhas[0].split("=")[1].strip())
+        F1_SCORE_OTIMIZADO = float(linhas[1].split("=")[1].strip())
+    print(f"✓ Threshold carregado do arquivo: {THRESHOLD_OTIMIZADO:.4f}")
+    print(f"✓ F1-Score associado: {F1_SCORE_OTIMIZADO:.4f}")
+except FileNotFoundError:
+    print("⚠️ Arquivo threshold_otimizado.txt não encontrado. Usando valor padrão.")
+    THRESHOLD_OTIMIZADO = 0.26
+    F1_SCORE_OTIMIZADO = None
 
-# Definir threshold otimizado (ajuste conforme resultado do notebook)
-THRESHOLD_OTIMIZADO = 0.35  # Ajuste este valor após executar o notebook
+# Carregar modelo, scaler e colunas
+try:
+    modelo = joblib.load(MODELO_PATH)
+    scaler = joblib.load(SCALER_PATH)
+    colunas_treino = joblib.load(COLUNAS_PATH)
+    print(f"✓ Modelo carregado: {len(colunas_treino)} features")
+    print(f"✓ Threshold otimizado: {THRESHOLD_OTIMIZADO}")
+    logging.info(f"API iniciada com threshold={THRESHOLD_OTIMIZADO}")
+except Exception as e:
+    logging.error(f"Erro ao carregar modelo: {e}")
+    raise RuntimeError(f"❌ Erro ao carregar modelo: {e}")
 
-# Classe com todos os campos esperados
-class DadosAcidente(BaseModel):
-    # Variáveis numéricas
+# ==================== MODELOS DE DADOS ====================
+class AcidenteAereo(BaseModel):
+    """Modelo de entrada para predição de acidentes aéreos."""
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "latitude": -23.5505,
+                "longitude": -46.6333,
+                "peso_max_decolagem": 5700.0,
+                "numero_assentos": 9,
+                "fase_operacao": "DECOLAGEM",
+                "cat_aeronave": "AVIÃO",
+                "regiao": "SUDESTE",
+                "uf": "SP",
+                "modelo_aeronave": "EMB-110",
+                "nome_fabricante": "EMBRAER",
+                "ano_ocorrencia": 2023,
+                "mes_ocorrencia": 6
+            }
+        }
+    )
+    
     latitude: float
     longitude: float
     peso_max_decolagem: float
     numero_assentos: int
-    ano_ocorrencia: int
-    mes_ocorrencia: int
-    
-    # Variáveis categóricas
     fase_operacao: str
     cat_aeronave: str
     regiao: str
     uf: str
     modelo_aeronave: str
     nome_fabricante: str
+    ano_ocorrencia: int
+    mes_ocorrencia: int
 
-    class Config:
-        schema_extra = {
-            "example": {
-                "latitude": -23.5505,
-                "longitude": -46.6333,
-                "peso_max_decolagem": 5700.0,
-                "numero_assentos": 9,
-                "ano_ocorrencia": 2020,
-                "mes_ocorrencia": 6,
-                "fase_operacao": "DECOLAGEM",
-                "cat_aeronave": "AVIAO",
-                "regiao": "SUDESTE",
-                "uf": "SP",
-                "modelo_aeronave": "EMB-810C",
-                "nome_fabricante": "EMBRAER"
-            }
-        }
+class RespostaPredicao(BaseModel):
+    """Modelo de resposta para predição individual."""
+    probabilidade_fatal: float
+    predicao: str
+    predicao_numerica: int
+    threshold_utilizado: float
+    nivel_risco: str
+    recomendacao: str
+    interpretacao_detalhada: str
 
+class RespostaLote(BaseModel):
+    """Modelo de resposta para predição em lote."""
+    total_acidentes: int
+    previstos_fatais: int
+    previstos_nao_fatais: int
+    taxa_fatalidade_prevista: float
+    probabilidade_media: float
+    distribuicao_risco: dict
+    resultados: List[dict]
 
+# ==================== FUNÇÕES AUXILIARES ====================
+def preprocessar_entrada(dados: AcidenteAereo) -> np.ndarray:
+    """
+    Converte entrada em formato compatível com o modelo.
+    
+    Aplica:
+    1. One-hot encoding nas variáveis categóricas
+    2. Alinhamento com as colunas do treino
+    3. Normalização usando o scaler treinado
+    """
+    df = pd.DataFrame([dados.model_dump()])
+    
+    colunas_categoricas = ['fase_operacao', 'cat_aeronave', 'regiao', 'uf', 
+                           'modelo_aeronave', 'nome_fabricante']
+    df_encoded = pd.get_dummies(df, columns=colunas_categoricas)
+    
+    df_encoded = df_encoded.reindex(columns=colunas_treino, fill_value=0)
+    
+    X_scaled = scaler.transform(df_encoded)
+    
+    return X_scaled
+
+def interpretar_risco(probabilidade: float) -> str:
+    """Classifica o nível de risco baseado na probabilidade."""
+    if probabilidade >= 0.70:
+        return "CRÍTICO"
+    elif probabilidade >= 0.50:
+        return "ALTO"
+    elif probabilidade >= 0.30:
+        return "MODERADO"
+    else:
+        return "BAIXO"
+
+def gerar_recomendacao(predicao: int, probabilidade: float, nivel_risco: str) -> str:
+    """Gera recomendação de ação baseada na predição e nível de risco."""
+    if predicao == 1:
+        if nivel_risco == "CRÍTICO":
+            return "🚨 ALERTA CRÍTICO: Implementar medidas de segurança IMEDIATAS. Investigação prioritária obrigatória."
+        elif nivel_risco == "ALTO":
+            return "⚠️ ALERTA ALTO: Investigação detalhada recomendada. Reforçar protocolos de segurança."
+        else:
+            return "⚠️ ATENÇÃO: Monitoramento reforçado necessário. Revisar condições operacionais."
+    else:
+        if probabilidade >= 0.20:
+            return "💡 PRECAUÇÃO: Risco presente mas baixo. Manter vigilância e seguir protocolos padrão."
+        else:
+            return "✅ SEGURO: Risco muito baixo. Manter procedimentos normais de segurança."
+
+def gerar_interpretacao_detalhada(probabilidade: float, nivel_risco: str) -> str:
+    """Gera interpretação detalhada da predição."""
+    prob_percentual = probabilidade * 100
+    
+    interpretacoes = {
+        "CRÍTICO": f"Probabilidade MUITO ALTA de fatalidade ({prob_percentual:.1f}%). Situação de risco extremo.",
+        "ALTO": f"Probabilidade ELEVADA de fatalidade ({prob_percentual:.1f}%). Situação de alto risco.",
+        "MODERADO": f"Probabilidade MODERADA de fatalidade ({prob_percentual:.1f}%). Cautela recomendada.",
+        "BAIXO": f"Probabilidade BAIXA de fatalidade ({prob_percentual:.1f}%). Situação relativamente segura."
+    }
+    
+    return interpretacoes.get(nivel_risco, f"Probabilidade: {prob_percentual:.1f}%")
+
+# ==================== ENDPOINTS ====================
 @app.get("/")
 def root():
-    """Endpoint raiz - informações sobre a API"""
+    """Página inicial da API com informações básicas."""
     return {
-        "mensagem": "API de Previsão de Acidentes Aéreos Fatais",
-        "versao": "1.0.0",
+        "message": "🛩️ API de Predição de Acidentes Aéreos Fatais",
+        "modelo": "Regressão Logística (Otimizada)",
+        "threshold_atual": THRESHOLD_OTIMIZADO,
+        "f1_score_otimizado": F1_SCORE_OTIMIZADO,
+        "estrategia": "Threshold Otimizado para Máximo F1-Score",
+        "versao": "2.0",
         "endpoints": {
-            "/prever/": "POST - Realizar predição de fatalidade",
-            "/status/": "GET - Verificar status da API",
-            "/docs": "Documentação interativa (Swagger UI)"
+            "GET /": "Informações da API",
+            "GET /health": "Status de saúde",
+            "GET /metricas": "Métricas do modelo",
+            "POST /prever": "Predição individual",
+            "POST /prever_lote": "Predição em lote",
+            "GET /docs": "Documentação interativa"
         }
     }
 
-
-@app.get("/status/")
-def status():
-    """Verificar se o modelo está carregado e pronto"""
-    if model is None or scaler is None or colunas_treino is None:
-        return {
-            "status": "erro",
-            "mensagem": "Modelo não carregado. Execute o notebook para gerar os arquivos .pkl"
-        }
+@app.get("/health")
+def health_check():
+    """Verifica se a API está operacional."""
     return {
         "status": "ok",
-        "modelo_carregado": True,
-        "threshold": THRESHOLD_OTIMIZADO,
-        "features_esperadas": len(colunas_treino)
+        "timestamp": datetime.now().isoformat(),
+        "modelo_carregado": modelo is not None,
+        "scaler_carregado": scaler is not None,
+        "features_esperadas": len(colunas_treino),
+        "threshold": THRESHOLD_OTIMIZADO
     }
 
+@app.get("/metricas")
+def obter_metricas():
+    """Retorna métricas do modelo treinado."""
+    return {
+        "modelo": "Regressão Logística",
+        "threshold_otimizado": THRESHOLD_OTIMIZADO,
+        "f1_score": F1_SCORE_OTIMIZADO,
+        "total_features": len(colunas_treino),
+        "estrategia": "Maximização do F1-Score",
+        "interpretacao_threshold": f"Predições com probabilidade ≥ {THRESHOLD_OTIMIZADO:.2%} são classificadas como FATAL"
+    }
 
-@app.post("/prever/")
-def prever(dados: DadosAcidente):
-    """
-    Realizar predição de fatalidade de acidente aéreo
-    
-    Retorna:
-    - fatal: boolean indicando se o acidente tem alta probabilidade de ser fatal
-    - probabilidade: valor entre 0 e 1 indicando a confiança da predição
-    - interpretacao: texto explicativo do resultado
-    """
-    
-    # Verificar se o modelo está carregado
-    if model is None or scaler is None or colunas_treino is None:
-        raise HTTPException(
-            status_code=503,
-            detail="Modelo não está disponível. Execute o notebook para gerar os arquivos necessários."
-        )
-    
+@app.post("/prever", response_model=RespostaPredicao)
+def prever_acidente(dados: AcidenteAereo):
+    """Prediz se um acidente aéreo será fatal."""
     try:
-        # Converter dados para DataFrame
-        df = pd.DataFrame([dados.dict()])
+        X = preprocessar_entrada(dados)
+        probabilidade = float(modelo.predict_proba(X)[0, 1])
+        predicao = int(probabilidade >= THRESHOLD_OTIMIZADO)
         
-        # Definir colunas numéricas e categóricas
-        colunas_categoricas = ['fase_operacao', 'cat_aeronave', 'regiao', 'uf', 
-                               'modelo_aeronave', 'nome_fabricante']
+        nivel_risco = interpretar_risco(probabilidade)
+        recomendacao = gerar_recomendacao(predicao, probabilidade, nivel_risco)
+        interpretacao = gerar_interpretacao_detalhada(probabilidade, nivel_risco)
         
-        # Aplicar one-hot encoding
-        df_encoded = pd.get_dummies(df, columns=colunas_categoricas)
-        
-        # Garantir que todas as colunas do treino estejam presentes
-        df_encoded = df_encoded.reindex(columns=colunas_treino, fill_value=0)
-        
-        # Normalizar os dados
-        df_scaled = scaler.transform(df_encoded)
-        
-        # Realizar predição
-        proba = model.predict_proba(df_scaled)[0][1]  # Probabilidade da classe 1 (Fatal)
-        pred = int(proba > THRESHOLD_OTIMIZADO)
-        
-        # Gerar interpretação
-        if pred == 1:
-            interpretacao = f"ATENÇÃO: Alto risco de fatalidade ({proba*100:.1f}%). Medidas preventivas recomendadas."
-        else:
-            if proba > 0.25:
-                interpretacao = f"Risco moderado de fatalidade ({proba*100:.1f}%). Cautela recomendada."
-            else:
-                interpretacao = f"Baixo risco de fatalidade ({proba*100:.1f}%)."
-        
-        return {
-            "fatal": bool(pred),
-            "probabilidade": round(float(proba), 4),
-            "probabilidade_percentual": f"{proba*100:.2f}%",
-            "interpretacao": interpretacao,
-            "threshold_utilizado": THRESHOLD_OTIMIZADO
-        }
-    
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Erro ao processar a predição: {str(e)}"
+        logging.info(
+            f"Predição: {dados.uf}/{dados.cat_aeronave} -> "
+            f"Prob={probabilidade:.4f}, Fatal={predicao}, Risco={nivel_risco}"
         )
+        
+        return RespostaPredicao(
+            probabilidade_fatal=round(probabilidade, 4),
+            predicao="FATAL" if predicao == 1 else "NÃO FATAL",
+            predicao_numerica=predicao,
+            threshold_utilizado=THRESHOLD_OTIMIZADO,
+            nivel_risco=nivel_risco,
+            recomendacao=recomendacao,
+            interpretacao_detalhada=interpretacao
+        )
+        
+    except Exception as e:
+        logging.error(f"Erro na predição: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erro na predição: {str(e)}")
 
+@app.post("/prever_lote", response_model=RespostaLote)
+def prever_lote(acidentes: List[AcidenteAereo]):
+    """Realiza predições para múltiplos acidentes simultaneamente."""
+    try:
+        resultados = []
+        probabilidades = []
+        distribuicao = {"CRÍTICO": 0, "ALTO": 0, "MODERADO": 0, "BAIXO": 0}
+        
+        for acidente in acidentes:
+            X = preprocessar_entrada(acidente)
+            probabilidade = float(modelo.predict_proba(X)[0, 1])
+            predicao = int(probabilidade >= THRESHOLD_OTIMIZADO)
+            nivel_risco = interpretar_risco(probabilidade)
+            
+            probabilidades.append(probabilidade)
+            distribuicao[nivel_risco] += 1
+            
+            resultados.append({
+                "dados_entrada": acidente.model_dump(),
+                "probabilidade_fatal": round(probabilidade, 4),
+                "predicao": "FATAL" if predicao == 1 else "NÃO FATAL",
+                "nivel_risco": nivel_risco
+            })
+        
+        total = len(resultados)
+        fatais = sum(1 for r in resultados if r["predicao"] == "FATAL")
+        prob_media = sum(probabilidades) / total if total > 0 else 0
+        
+        logging.info(f"Predição em lote: {total} acidentes, {fatais} fatais previstos, prob_media={prob_media:.4f}")
+        
+        return RespostaLote(
+            total_acidentes=total,
+            previstos_fatais=fatais,
+            previstos_nao_fatais=total - fatais,
+            taxa_fatalidade_prevista=round(fatais / total * 100, 2) if total > 0 else 0,
+            probabilidade_media=round(prob_media, 4),
+            distribuicao_risco=distribuicao,
+            resultados=resultados
+        )
+        
+    except Exception as e:
+        logging.error(f"Erro na predição em lote: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erro na predição em lote: {str(e)}")
+
+# ==================== EXECUÇÃO ====================
+if __name__ == "__main__":
+    import uvicorn
+    print("\n" + "="*70)
+    print("🚀 INICIANDO API DE PREDIÇÃO DE ACIDENTES AÉREOS FATAIS")
+    print("="*70)
+    print(f"📊 Threshold: {THRESHOLD_OTIMIZADO:.4f}")
+    print(f"📈 F1-Score: {F1_SCORE_OTIMIZADO:.4f}" if F1_SCORE_OTIMIZADO else "")
+    print(f"🔢 Features: {len(colunas_treino)}")
+    print("="*70)
+    print("\n🌐 Acesse:")
+    print("   • API: http://localhost:8000")
+    print("   • Docs: http://localhost:8000/docs")
+    print("\n💡 Pressione CTRL+C para parar\n")
+    
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")

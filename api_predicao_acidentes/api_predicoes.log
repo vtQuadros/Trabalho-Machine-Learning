@@ -1,0 +1,37 @@
+2025-10-27 15:52:51,668 - INFO - API iniciada com threshold=0.26
+2025-10-27 15:59:32,629 - INFO - Predição: MT/S05 -> Prob=0.0089, Fatal=0, Risco=BAIXO
+2025-10-27 15:59:34,767 - INFO - Predição: MT/TPP -> Prob=0.0286, Fatal=0, Risco=BAIXO
+2025-10-27 15:59:36,938 - INFO - Predição: GO/S11 -> Prob=0.0040, Fatal=0, Risco=BAIXO
+2025-10-27 15:59:39,092 - INFO - Predição: SP/S05 -> Prob=0.0050, Fatal=0, Risco=BAIXO
+2025-10-27 15:59:41,235 - INFO - Predição: TO/S05 -> Prob=0.0155, Fatal=0, Risco=BAIXO
+2025-10-27 15:59:43,481 - INFO - Predição em lote: 20 acidentes, 3 fatais previstos, prob_media=0.1288
+2025-10-27 16:01:21,219 - INFO - Predição: MT/S05 -> Prob=0.0089, Fatal=0, Risco=BAIXO
+2025-10-27 16:01:23,365 - INFO - Predição: MT/TPP -> Prob=0.0286, Fatal=0, Risco=BAIXO
+2025-10-27 16:01:25,523 - INFO - Predição: GO/S11 -> Prob=0.0040, Fatal=0, Risco=BAIXO
+2025-10-27 16:01:27,683 - INFO - Predição: SP/S05 -> Prob=0.0050, Fatal=0, Risco=BAIXO
+2025-10-27 16:01:29,856 - INFO - Predição: TO/S05 -> Prob=0.0155, Fatal=0, Risco=BAIXO
+2025-10-27 16:01:32,107 - INFO - Predição em lote: 20 acidentes, 3 fatais previstos, prob_media=0.1288
+2025-10-27 16:01:57,275 - INFO - API iniciada com threshold=0.18
+2025-10-27 16:02:07,070 - INFO - Predição: MT/S05 -> Prob=0.0089, Fatal=0, Risco=BAIXO
+2025-10-27 16:02:09,245 - INFO - Predição: MT/TPP -> Prob=0.0286, Fatal=0, Risco=BAIXO
+2025-10-27 16:02:11,407 - INFO - Predição: GO/S11 -> Prob=0.0040, Fatal=0, Risco=BAIXO
+2025-10-27 16:02:13,560 - INFO - Predição: SP/S05 -> Prob=0.0050, Fatal=0, Risco=BAIXO
+2025-10-27 16:02:15,748 - INFO - Predição: TO/S05 -> Prob=0.0155, Fatal=0, Risco=BAIXO
+2025-10-27 16:02:17,983 - INFO - Predição em lote: 20 acidentes, 3 fatais previstos, prob_media=0.1288
+2025-10-27 16:18:28,047 - INFO - API iniciada com threshold=0.18
+2025-10-27 16:18:48,759 - INFO - API iniciada com threshold=0.18
+2025-10-27 16:19:18,436 - INFO - API iniciada com threshold=0.18
+2025-10-27 16:19:33,004 - INFO - Predição: MT/S05 -> Prob=0.7408, Fatal=1, Risco=CRÍTICO
+2025-10-27 16:19:35,194 - INFO - Predição: MT/TPP -> Prob=0.1508, Fatal=0, Risco=BAIXO
+2025-10-27 16:19:37,346 - INFO - Predição: GO/S11 -> Prob=0.0039, Fatal=0, Risco=BAIXO
+2025-10-27 16:19:39,496 - INFO - Predição: SP/S05 -> Prob=0.0124, Fatal=0, Risco=BAIXO
+2025-10-27 16:19:41,676 - INFO - Predição: TO/S05 -> Prob=0.0031, Fatal=0, Risco=BAIXO
+2025-10-27 16:19:44,000 - INFO - Predição em lote: 20 acidentes, 4 fatais previstos, prob_media=0.1149
+2025-10-27 16:21:49,561 - INFO - API iniciada com threshold=0.15
+2025-10-27 16:22:56,669 - INFO - Predição: MT/S05 -> Prob=0.7408, Fatal=1, Risco=CRÍTICO
+2025-10-27 16:22:58,839 - INFO - Predição: MT/TPP -> Prob=0.1508, Fatal=1, Risco=BAIXO
+2025-10-27 16:23:01,011 - INFO - Predição: GO/S11 -> Prob=0.0039, Fatal=0, Risco=BAIXO
+2025-10-27 16:23:03,200 - INFO - Predição: SP/S05 -> Prob=0.0124, Fatal=0, Risco=BAIXO
+2025-10-27 16:23:05,363 - INFO - Predição: TO/S05 -> Prob=0.0031, Fatal=0, Risco=BAIXO
+2025-10-27 16:23:07,670 - INFO - Predição em lote: 20 acidentes, 7 fatais previstos, prob_media=0.1149
+2025-10-27 16:25:21,161 - INFO - API iniciada com threshold=0.18
