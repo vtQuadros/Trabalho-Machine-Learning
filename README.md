@@ -68,14 +68,14 @@ Após executar o notebook até a seção de exportação:
 
 ```bash
 # Instalar dependências da API
-cd api_predicao_evasao
+cd api_predicao_acidentes
 pip install -r requirements.txt
 
 # Executar a API
 uvicorn api_fastapi:app --reload
 
 # Em outro terminal, testar a API
-python testar_api.py
+python api_predicao_acidentes/teste_base_real.py
 ```
 
 Acesse a documentação interativa em: `http://127.0.0.1:8000/docs`
