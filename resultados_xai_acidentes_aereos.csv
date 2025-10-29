@@ -1,0 +1,15 @@
+Feature,Tipo,Prioridade
+fase_operacao_Corrida após pouso,Consenso,Alta
+uf_BA,Consenso,Alta
+latitude,Consenso,Alta
+uf_MG,Consenso,Alta
+cat_aeronave_TPP,Permutation_Only,Média
+nome_fabricante_NEIVA,Permutation_Only,Média
+peso_max_decolagem,Permutation_Only,Média
+regiao_Nordeste,Permutation_Only,Média
+fase_operacao_Decolagem,Permutation_Only,Média
+nome_fabricante_EMBRAER,Coeficientes_Only,Média
+ano_ocorrencia,Coeficientes_Only,Média
+uf_RR,Coeficientes_Only,Média
+fase_operacao_Especializada,Coeficientes_Only,Média
+uf_SC,Coeficientes_Only,Média
