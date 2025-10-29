@@ -84,3 +84,27 @@
 2025-10-27 21:43:30,265 - INFO - Predi��o: GO/S11 -> Prob=0.0039, Fatal=0, Risco=BAIXO
 2025-10-27 21:43:32,329 - INFO - Predi��o: SP/S05 -> Prob=0.0124, Fatal=0, Risco=BAIXO
 2025-10-28 21:56:45,218 - INFO - API iniciada com threshold=0.26
+2025-10-29 10:37:26,170 - INFO - API iniciada com threshold=0.26
+2025-10-29 10:38:04,529 - INFO - Predição: MT/S05 -> Prob=0.9030, Fatal=1, Risco=CRÍTICO
+2025-10-29 10:38:04,543 - INFO - Predição: MT/TPP -> Prob=0.0902, Fatal=0, Risco=BAIXO
+2025-10-29 10:38:04,673 - INFO - Predição em lote: 20 acidentes, 6 fatais previstos, prob_media=0.2545
+2025-10-29 10:38:04,682 - INFO - Predição: MT/S05 -> Prob=0.9030, Fatal=1, Risco=CRÍTICO
+2025-10-29 10:38:04,695 - INFO - Predição: MT/TPP -> Prob=0.0902, Fatal=0, Risco=BAIXO
+2025-10-29 10:38:04,711 - INFO - Predição: GO/S11 -> Prob=0.0013, Fatal=0, Risco=BAIXO
+2025-10-29 10:38:04,724 - INFO - Predição: SP/S05 -> Prob=0.0006, Fatal=0, Risco=BAIXO
+2025-10-29 10:38:04,736 - INFO - Predição: TO/S05 -> Prob=0.0591, Fatal=0, Risco=BAIXO
+2025-10-29 10:38:04,752 - INFO - Predição: MT/TPP -> Prob=0.0902, Fatal=0, Risco=BAIXO
+2025-10-29 10:38:04,778 - INFO - Predição: GO/S11 -> Prob=0.0022, Fatal=0, Risco=BAIXO
+2025-10-29 10:38:04,798 - INFO - Predição: GO/S11 -> Prob=0.1568, Fatal=0, Risco=BAIXO
+2025-10-29 10:38:04,820 - INFO - Predição: MT/S05 -> Prob=0.0003, Fatal=0, Risco=BAIXO
+2025-10-29 10:38:04,843 - INFO - Predição: PA/S05 -> Prob=0.0472, Fatal=0, Risco=BAIXO
+2025-10-29 10:38:04,859 - INFO - Predição: GO/S05 -> Prob=0.0162, Fatal=0, Risco=BAIXO
+2025-10-29 10:38:04,875 - INFO - Predição: SP/S05 -> Prob=0.6224, Fatal=1, Risco=ALTO
+2025-10-29 10:38:04,887 - INFO - Predição: SP/TPP -> Prob=0.9992, Fatal=1, Risco=CRÍTICO
+2025-10-29 10:38:04,901 - INFO - Predição: PR/S11 -> Prob=0.2787, Fatal=1, Risco=BAIXO
+2025-10-29 10:38:04,913 - INFO - Predição: SP/S05 -> Prob=0.0136, Fatal=0, Risco=BAIXO
+2025-10-29 10:38:04,925 - INFO - Predição: MA/T11 -> Prob=0.9606, Fatal=1, Risco=CRÍTICO
+2025-10-29 10:38:04,940 - INFO - Predição: GO/S11 -> Prob=0.0006, Fatal=0, Risco=BAIXO
+2025-10-29 10:38:04,953 - INFO - Predição: PA/S05 -> Prob=0.7910, Fatal=1, Risco=CRÍTICO
+2025-10-29 10:38:04,968 - INFO - Predição: MG/S11 -> Prob=0.0095, Fatal=0, Risco=BAIXO
+2025-10-29 10:38:04,980 - INFO - Predição: MA/S05 -> Prob=0.0480, Fatal=0, Risco=BAIXO
